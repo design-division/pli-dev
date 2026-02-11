@@ -159,6 +159,16 @@ document.addEventListener("DOMContentLoaded", function () {
     $(document).on("pjax:end", function () {
       injectBlogMetaCleanly();
     });
+
+    
+    /*INSERT BACK TO ARTICLES BUTTON*/
+    $(".dd-blog-meta-column").apped(
+      '<div class="blog-back-button">' +
+        '<a class="item-pagination-link back-button" href="/research-hub">Back to Articles</a>' +
+      '</div>'
+    );
+    
   });
+
 
 
