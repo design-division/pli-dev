@@ -171,7 +171,7 @@ function addBackToArticlesButton() {
 
   if ($wrap.find(".blog-back-button").length) return; // prevent duplicates
 
-  $wrap.prepend(
+  $wrap.append(
     '<div class="blog-back-button">' +
       '<a class="item-pagination-link back-button" href="/research-hub">Back to Articles</a>' +
     "</div>"
