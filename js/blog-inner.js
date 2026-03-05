@@ -178,16 +178,64 @@ function addBackToArticlesButton() {
   );
 }
 
+/* ========== STACKED QUOTE: MOVE SOURCE IMAGE/NAME/BUTTON INTO ONE WRAP ========== */
+function restructureStackedQuoteSources() {
+  const $article = $("#article");
+  if (!$article.length) return;
+
+  $article.find("figure.design-layout-stack").each(function () {
+    const $figure = $(this);
+
+    if ($figure.data("kolQuoteProcessed")) return;
+
+    const $intrinsic = $figure.children(".intrinsic").first(); 
+    const $caption = $figure.find("figcaption.image-card-wrapper").first();
+    const $card = $caption.find(".image-card").first();
+
+    if (!$intrinsic.length || !$caption.length || !$card.length) return;
+
+    const $subtitleWrapper = $card.find(".image-subtitle-wrapper").first();
+    if (!$subtitleWrapper.length) return;
+
+    const $sourceH4 = $card.find(".image-subtitle h4").first().length
+      ? $card.find(".image-subtitle h4").first()
+      : $card.find("h4").first();
+
+    const $buttonWrap = $card.find(".image-button-wrapper").first();
+
+    if (!$sourceH4.length && !$buttonWrap.length) return;
+
+    let $sourceWrap = $card.find(".kol-quote-source").first();
+    if (!$sourceWrap.length) {
+      $sourceWrap = $("<div class='kol-quote-source'></div>");
+      $sourceWrap.insertAfter($subtitleWrapper);
+    }
+
+    let $attrText = $sourceWrap.find(".kol-attr-text").first();
+    if (!$attrText.length) {
+      $attrText = $("<div class='kol-attr-text'></div>");
+      $sourceWrap.append($attrText);
+    }
+
+    $sourceWrap.prepend($intrinsic);
+
+    if ($sourceH4.length) $attrText.append($sourceH4);
+    if ($buttonWrap.length) $attrText.append($buttonWrap);
+
+    $figure.data("kolQuoteProcessed", true);
+  });
+}
 
 /* ========== INIT (Squarespace PJAX safe) ========== */
-
 $(document).ready(function () {
   injectBlogMetaCleanly();
   addBackToArticlesButton();
+  restructureStackedQuoteSources();
 });
 
 $(document).on("pjax:end", function () {
   injectBlogMetaCleanly();
   addBackToArticlesButton();
+  restructureStackedQuoteSources();
   initReferencesAccordion();
 });
