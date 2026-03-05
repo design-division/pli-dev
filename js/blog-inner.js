@@ -180,62 +180,83 @@ function addBackToArticlesButton() {
 
 /* ========== STACKED QUOTE: MOVE SOURCE IMAGE/NAME/BUTTON INTO ONE WRAP ========== */
 function restructureStackedQuoteSources() {
-  const $article = $("#article");
-  if (!$article.length) return;
+  const $scope = $(".dd-blog-content-column");
+  if (!$scope.length) return;
 
-  $article.find("figure.design-layout-stack").each(function () {
+  // Target ONLY stacked image blocks inside the main content column
+  $scope.find("figure.design-layout-stack").each(function () {
     const $figure = $(this);
 
+    // Prevent running twice on the same block
     if ($figure.data("kolQuoteProcessed")) return;
 
-    const $intrinsic = $figure.children(".intrinsic").first(); 
+    const $intrinsic = $figure.children(".intrinsic").first(); // image container (currently above caption)
     const $caption = $figure.find("figcaption.image-card-wrapper").first();
     const $card = $caption.find(".image-card").first();
 
     if (!$intrinsic.length || !$caption.length || !$card.length) return;
 
+    // Quote area
     const $subtitleWrapper = $card.find(".image-subtitle-wrapper").first();
     if (!$subtitleWrapper.length) return;
 
+    // Attribution elements
     const $sourceH4 = $card.find(".image-subtitle h4").first().length
       ? $card.find(".image-subtitle h4").first()
       : $card.find("h4").first();
 
     const $buttonWrap = $card.find(".image-button-wrapper").first();
 
+    // If this isn't your quote pattern, skip
     if (!$sourceH4.length && !$buttonWrap.length) return;
 
+    // Create (or reuse) source wrapper inserted directly after the quote text
     let $sourceWrap = $card.find(".kol-quote-source").first();
     if (!$sourceWrap.length) {
       $sourceWrap = $("<div class='kol-quote-source'></div>");
       $sourceWrap.insertAfter($subtitleWrapper);
     }
 
+    // Create (or reuse) nested wrapper for name + button
     let $attrText = $sourceWrap.find(".kol-attr-text").first();
     if (!$attrText.length) {
       $attrText = $("<div class='kol-attr-text'></div>");
       $sourceWrap.append($attrText);
     }
 
-    $sourceWrap.prepend($intrinsic);
+    // Move image into source wrapper (ensure it's the first item)
+    // (Using appendTo avoids weirdness if it was already moved elsewhere)
+    $intrinsic.appendTo($sourceWrap);
+    $intrinsic.prependTo($sourceWrap);
 
-    if ($sourceH4.length) $attrText.append($sourceH4);
-    if ($buttonWrap.length) $attrText.append($buttonWrap);
+    // Move attribution elements into attr wrapper
+    if ($sourceH4.length) $sourceH4.appendTo($attrText);
+    if ($buttonWrap.length) $buttonWrap.appendTo($attrText);
 
     $figure.data("kolQuoteProcessed", true);
   });
 }
 
-/* ========== INIT (Squarespace PJAX safe) ========== */
-$(document).ready(function () {
-  injectBlogMetaCleanly();
-  addBackToArticlesButton();
-  restructureStackedQuoteSources();
-});
 
-$(document).on("pjax:end", function () {
-  injectBlogMetaCleanly();
-  addBackToArticlesButton();
-  restructureStackedQuoteSources();
-  initReferencesAccordion();
+
+function ddWhenJqueryReady(cb, tries = 0) {
+  if (window.jQuery) return cb();
+  if (tries > 50) return; // give up silently
+  setTimeout(() => ddWhenJqueryReady(cb, tries + 1), 50);
+}
+
+/* ========== INIT (Squarespace PJAX safe) ========== */
+ddWhenJqueryReady(function () {
+  $(document).ready(function () {
+    injectBlogMetaCleanly();
+    addBackToArticlesButton();
+    restructureStackedQuoteSources();
+  });
+
+  $(document).on("pjax:end", function () {
+    injectBlogMetaCleanly();
+    addBackToArticlesButton();
+    restructureStackedQuoteSources();
+    initReferencesAccordion();
+  });
 });
