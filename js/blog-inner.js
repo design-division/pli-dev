@@ -178,59 +178,58 @@ function addBackToArticlesButton() {
   );
 }
 
-/* ========== STACKED QUOTE: MOVE SOURCE IMAGE/NAME/BUTTON INTO ONE WRAP ========== */
+/* ========== STACKED QUOTE: MOVE SOURCE IMAGE + ATTRIBUTION (BLOCKQUOTE) + BUTTON ========== */
 function restructureStackedQuoteSources() {
   const $scope = $(".dd-blog-content-column");
   if (!$scope.length) return;
 
-  // Target ONLY stacked image blocks inside the main content column
   $scope.find("figure.design-layout-stack").each(function () {
     const $figure = $(this);
 
     // Prevent running twice on the same block
     if ($figure.data("kolQuoteProcessed")) return;
 
-    const $intrinsic = $figure.children(".intrinsic").first(); // image container (currently above caption)
+    const $intrinsic = $figure.children(".intrinsic").first();
     const $caption = $figure.find("figcaption.image-card-wrapper").first();
     const $card = $caption.find(".image-card").first();
 
     if (!$intrinsic.length || !$caption.length || !$card.length) return;
 
-    // Quote area
+    // Quote area (where your <p> quote lives)
     const $subtitleWrapper = $card.find(".image-subtitle-wrapper").first();
     if (!$subtitleWrapper.length) return;
 
-    // Attribution elements
-    const $sourceH4 = $card.find(".image-subtitle h4").first().length
-      ? $card.find(".image-subtitle h4").first()
-      : $card.find("h4").first();
+    // Grab any blockquotes within the quote area (e.g. name + title)
+    const $blockquotes = $subtitleWrapper.find("blockquote");
 
+    // Bio button
     const $buttonWrap = $card.find(".image-button-wrapper").first();
 
-    // If this isn't your quote pattern, skip
-    if (!$sourceH4.length && !$buttonWrap.length) return;
+    // If there's no attribution (blockquote) and no button, skip
+    if (!$blockquotes.length && !$buttonWrap.length) return;
 
-    // Create (or reuse) source wrapper inserted directly after the quote text
+    // Create (or reuse) outer wrapper inserted directly after quote text
     let $sourceWrap = $card.find(".kol-quote-source").first();
     if (!$sourceWrap.length) {
       $sourceWrap = $("<div class='kol-quote-source'></div>");
       $sourceWrap.insertAfter($subtitleWrapper);
     }
 
-    // Create (or reuse) nested wrapper for name + button
+    // Create (or reuse) nested wrapper for attribution + button
     let $attrText = $sourceWrap.find(".kol-attr-text").first();
     if (!$attrText.length) {
       $attrText = $("<div class='kol-attr-text'></div>");
       $sourceWrap.append($attrText);
     }
 
-    // Move image into source wrapper (ensure it's the first item)
-    // (Using appendTo avoids weirdness if it was already moved elsewhere)
+    // Move image into source wrapper (make sure it's first)
     $intrinsic.appendTo($sourceWrap);
     $intrinsic.prependTo($sourceWrap);
 
-    // Move attribution elements into attr wrapper
-    if ($sourceH4.length) $sourceH4.appendTo($attrText);
+    // Move attribution blockquotes into the attr wrapper (keeps their order)
+    if ($blockquotes.length) $blockquotes.appendTo($attrText);
+
+    // Move button into the attr wrapper
     if ($buttonWrap.length) $buttonWrap.appendTo($attrText);
 
     $figure.data("kolQuoteProcessed", true);
